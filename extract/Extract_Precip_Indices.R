@@ -7,7 +7,7 @@ library(zoo)
 library(foreach)
 library(doParallel)
 
-setwd('G://My Drive/')
+setwd('/mnt/')
 
 dat <- read.csv('Feed the Future/Coords&Dates.csv') %>%
   unique
