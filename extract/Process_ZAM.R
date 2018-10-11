@@ -80,7 +80,7 @@ allhh <- Reduce(merge, list(hh, spi, lc)) %>%
          latitude, longitude, pop, market, dependents, workers, pbs_id,
          spei12, spei24, spei36, spi12, spi24, spi36, precip_mean, 
          tmin_mean, tmax_mean, spei12gs, spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
-  filter(!hh_refno %in% c('ZAM-3065-5', 'ZAM-3027-247', 'ZAM-3033-314', 'ZAM-3080-9')) %>%
+  filter(!hh_refno %in% c('ZAM-3065-5', 'ZAM-3027-247', 'ZAM-3033-314', 'ZAM-3080-9', 'ZAM-3033-247')) %>%
   na.omit
 
 allchild <- Reduce(merge, list(children, allhh)) %>%

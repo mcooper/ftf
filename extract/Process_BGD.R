@@ -59,7 +59,7 @@ hh <- merge(hh, edumap, all.x=T, all.y=F) %>%
   mutate(hhhead_education=factor(new, levels=c('never', 'primary', 'secondary', 'high school', 'university')),
          new=NULL)
 
-hh$asset_score <- read.dta13('Bangladesh/4. BIHS_household_2011_15.dta') %>%
+hh$asset_index <- read.dta13('Bangladesh/4. BIHS_household_2011_15.dta') %>%
   select(land_total,land_rented,land_owned_rentedout,land_owned_notoperated,land_owned_operated,
          house_owned,house_rooms,house_electricity,house_watersource,house_toilet,house_roof,
          house_walls,house_floor,asset_qty_cattle,asset_qty_poultry,asset_qty_sheepgoat,
@@ -140,12 +140,13 @@ sperr <- c(489, 905, 908, 955, 961, 1021, 1048, 1119, 1241, 1242, 1243, 1244, 12
 sperr <- paste0('BGD-', sperr)
 
 allhh <- Reduce(merge, list(hh, hhs, hhcluster, irrig, lc, spi)) %>%
-  filter(!hh_refno %in% sperr) %>%
+  filter(!hh_refno %in% sperr & market >= 8) %>%
   select(hhs, year, hh_refno, hhhead_education, hhhead_literate, hhhead_sex, 
-         hhhead_religion, hh_size, irrigation, dependents, workers, asset_score, 
+         hhhead_religion, hh_size, irrigation, dependents, workers, asset_index, 
          cluster, perc_irrig, pop, market, latitude, longitude, spei12, spei24, 
          spei36, spi12, spi24, spi36, precip_mean,  tmin_mean, tmax_mean, spei12gs, 
          spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
+  mutate(spi24sq=spi24^2) %>%
   na.omit
 
 allchild <- merge(child, allhh, all.x=T, all.y=F) %>%

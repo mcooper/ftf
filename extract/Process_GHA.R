@@ -140,6 +140,7 @@ allhh <- Reduce(merge, list(hhdem, hunger, assets, depend_ratio, hhchar, spi, lc
          hhhead_religion, hhhead_age, hhhead_education, hhhead_literate, hhhead_sex, 
          dependents, workers, spei12, spei24, spei36, spi12, spi24, spi36, precip_mean, 
          tmin_mean, tmax_mean, spei12gs, spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
+  mutate(spi24sq=spi24^2) %>%
   na.omit
 
 allchild <- merge(child, allhh, all.x=T, all.y=F) %>%
