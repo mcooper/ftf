@@ -7,66 +7,75 @@ setwd('G:/My Drive/Feed the Future/')
 
 load('BGD_data.Rdata')
 
+buffer <- 30000
+
 ######################
 #Build spatial weights
 ######################
-sphh <- SpatialPoints(coords = allhh[ , c('longitude', 'latitude')], proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'))
-spmhh <- spTransform(sphh, CRS('+proj=utm +zone=30 +ellps=clrk80 +towgs84=-124.76,53,466.79,0,0,0,0 +units=m +no_defs '))
-distmat <- as.matrix(dist(spmhh@coords))
-diag(distmat) <- 1000000
-mins <- apply(distmat, 1, min)
-cat("The most remote village is", max(mins), "km away from others, so lag must be at least", max(mins))
+wlisthh <- allhh %>%
+  select(longitude, latitude) %>%
+  SpatialPoints(proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
+  spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125')) %>%
+  coordinates %>%
+  dnearneigh(0, buffer, longlat=F) %>%
+  nb2listw(style="W")
 
-dnnhh <- dnearneigh(coordinates(spmhh), 0, 75000, longlat=F)
-wlisthh <- nb2listw(dnnhh, style="W", zero.policy=TRUE )
-
-spchild <- SpatialPoints(coords = allchild[ , c('longitude', 'latitude')], proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'))
-spmchild <- spTransform(spchild, CRS('+proj=utm +zone=30 +ellps=clrk80 +towgs84=-124.76,53,466.79,0,0,0,0 +units=m +no_defs '))
-distmat <- as.matrix(dist(spmchild@coords))
-diag(distmat) <- 1000000
-mins <- apply(distmat, 1, min)
-cat("The most remote village is", max(mins), "km away from others, so lag must be at least", max(mins))
-
-dnnchild  <- dnearneigh(coordinates(spmchild), 0, 75000, longlat=F)
-wlistchild <- nb2listw(dnnchild, style="W", zero.policy=TRUE )
-
+wlistchild <- allchild %>%
+  select(longitude, latitude) %>%
+  SpatialPoints(proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
+  spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125')) %>%
+  coordinates %>%
+  dnearneigh(0, buffer, longlat=F) %>%
+  nb2listw(style="W")
 
 ########################################
 #Let's do a quick Chow test
 #######################################
 library(strucchange)
-library(splm)
-library(plm)
+
+allchild <- allchild %>% arrange(year)
+
+sctest(haz ~ asset_index + hh_size + spi24 + hhhead_religion + precip_mean + 
+         hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age, type='Chow', 
+       data=allchild, point=table(allchild$year)[1])
 
 allhh <- allhh %>% arrange(year)
 
 sctest(hhs~hhhead_education + hhhead_literate + hhhead_religion + hh_size + hhhead_sex +
-         irrigation + dependents + asset_score  + 
-         pop + market + spi24 + year, type='Chow', data=allhh)
-
-#Looks like we can treat both years as the same?
+         dependents + asset_index + precip_mean + 
+         pop + spi24, type='Chow', data=allhh, point=table(allhh$year)[1])
 
 #########################
 #Regressions
 #######################
 ############Child Nutrition############################
 
-#Check for autocorrelation in the outcome variable
-moran.test(allchild$haz, wlistchild)
+mod_child_bgd <- errorsarlm(haz ~ asset_index + hh_size + spi24 + 
+                          hhhead_religion + precip_mean + year + 
+                          hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age + pop,  
+                        data=allchild, wlistchild)
+summary(mod_child_bgd)
 
-#Significant autocorrelation, use spatial error model
-mod <- errorsarlm(haz ~ asset_index + pop + market + hh_size + spi24 + hhhead_religion + precip_mean + year + perc_irrig + 
-                     hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age + birth_order,  
-                  data=allchild, wlistchild)
-summary(mod)
+mod_child_irrig_bgd <- errorsarlm(haz ~ asset_index + hh_size + irrigation*spi24 + 
+                                hhhead_religion + irrigation*precip_mean + year + 
+                                hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age + pop,  
+                              data=allchild, wlistchild)
+summary(mod_child_irrig_bgd)
+
 
 #############Household Hunger###############################
 
-#Check for autocorrelation in the outcome variable
-moran.test(allhh$hhs, wlisthh)
+mod_hh_bgd <- errorsarlm(hhs ~ asset_index + hh_size + spi24 + 
+                       hhhead_religion + precip_mean + year + 
+                       hhhead_literate + hhhead_education + 
+                       hhhead_sex + dependents + pop,  
+                     data=allhh, wlisthh, tol.solve=10e-20)
+summary(mod_hh_bgd)
 
-#Significant autocorrelation, use spatial error model
-mod2 <- errorsarlm(haz ~ asset_index + pop + market + hh_size + spi24 + hhhead_religion + precip_mean + year + perc_irrig + 
-                     hhhead_literate + hhhead_education + hhhead_sex + dependents,  
-                   data=allchild, wlistchild)
-summary(mod2)
+mod_hh_irrig_bgd <- errorsarlm(hhs ~ asset_index + hh_size + irrigation*spi24 + 
+                             hhhead_religion + irrigation*precip_mean + year + 
+                             hhhead_literate + hhhead_education + hhhead_sex + dependents + pop,  
+                           data=allhh, wlisthh, tol.solve=10e-20)
+summary(mod_hh_irrig_bgd)
+
+
