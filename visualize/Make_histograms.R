@@ -17,7 +17,6 @@ all <- bind_rows(all, allhh)
 load('BGD_data.Rdata')
 
 allhh <- allhh %>%
-  filter(market >= 8) %>%
   mutate(country='Bangladesh')
 
 all <- bind_rows(all, allhh)
@@ -38,7 +37,6 @@ allc <- bind_rows(allc, allchild)
 load('BGD_data.Rdata')
 
 allchild <- allchild %>%
-  filter(market >= 8) %>%
   mutate(country='Bangladesh',
          hh_refno=NULL,
          year=as.numeric(as.character(year)))
@@ -61,9 +59,14 @@ ggsave('24-Month Standardized Precipitation Index PDF.png', width = 6, height=2.
 #Long-term precipitation Norms
 all$precip_mean <- all$precip_mean*12
 
-ggplot(all, aes(precip_mean)) + 
+makelabels <- function(x){
+  round(exp(x), -2)
+}
+
+ggplot(all, aes(log(precip_mean))) + 
   geom_density() +
   xlab('Average Annual Precipitation (mm)') +
+  scale_x_continuous(limits=c(6.75, 8.6), breaks =c(7, 7.5, 8, 8.5), labels=makelabels) + 
   ylab('Density') + theme_bw() + 
   facet_wrap(~country, nrow=1)
 
@@ -112,6 +115,14 @@ ggplot(allc2, aes(haz, color=Population)) +
   facet_wrap(~CountryYear, nrow=1) + 
   theme(legend.title = element_blank())
 ggsave('Child\'s Height-for-Age Z-score.png', width = 7, height=2.25, units = 'in')
+
+#Irrigation
+ggplot(allhh, aes(irrigation)) + 
+  geom_density()+
+  xlab('Irrigation Rate') + 
+  ylab('Density') + theme_bw() + 
+  theme(legend.title = element_blank())
+ggsave('Irrigation.png', width = 2.5, height=2.25, units = 'in')
 
 
 ##Bivariate plots
