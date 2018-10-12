@@ -51,4 +51,4 @@ mod_hh_gha <- errorsarlm(hhs~asset_index + hh_size + spi24 +
                    data=allhh, wlisthh)
 summary(mod_hh_gha)
 
-
+save(list=c('mod_child_gha', 'mod_hh_gha'), file='GHA_mods.Rdata')

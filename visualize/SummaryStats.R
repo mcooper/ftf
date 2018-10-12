@@ -1,25 +1,27 @@
-setwd('D://Documents and Settings/mcooper/Google Drive/Feed the Future/')
+setwd('G://My Drive/Feed the Future/')
 
 options(stringsAsFactors = FALSE)
 
 library(dplyr)
 
-GHAhh <- read.csv('GHA_allhh.csv') %>%
-  mutate(hhhead_education = as.character(hhhead_education))
-ZAMhh <- read.csv('ZAM_allhh.csv')
-BGDhh <- read.csv('BGD_allhh.csv') %>%
-  mutate(asset_index=asset_score) %>%
-  select(-asset_score)
+load('BGD_data.Rdata')
+bgd_hh <- allhh
+bgd_hh$country <- "Bangladesh"
+bgd_child <- allchild
+bgd_child$country <- "Bangladesh"
 
-GHAch <- read.csv('GHA_allchild.csv') %>%
-  mutate(hhhead_education = as.character(hhhead_education))
-ZAMch <- read.csv('ZAM_allchild.csv')
-BGDch <- read.csv('BGD_allchild.csv') %>%
-  mutate(asset_index=asset_score) %>%
-  select(-asset_score)
+load('GHA_data.Rdata')
+gha_hh <- allhh
+gha_hh$country <- "Ghana"
+gha_hh$hhhead_education <- as.character(gha_hh$hhhead_education)
 
-hh <- Reduce(bind_rows, list(GHAhh, ZAMhh, BGDhh))
-ch <- Reduce(bind_rows, list(GHAch, ZAMch, BGDch))
+gha_child <- allchild
+gha_child$country <- "Ghana"
+gha_child$hhhead_education <- as.character(gha_child$hhhead_education)
+gha_child$hh_refno <- NULL
+
+hh <- Reduce(bind_rows, list(gha_hh, bgd_hh))
+ch <- Reduce(bind_rows, list(gha_child, bgd_child))
 
 labeldf <- read.csv('regression_labels.csv')
 
@@ -34,7 +36,7 @@ sumfun <- function(df, mmnames, fcnames){
       accumdf[paste0(name, '_std'), c] <- sd(sel, na.rm=T)
     }
     for (name in fcnames){
-      sel <- df[df$country == c, name] %>% na.omit
+      sel <- df[df$country == c, name, drop=FALSE] %>% na.omit
       if (length(sel) > 1){
         tab <- table(sel)
         tabfrq <- tab/sum(tab)
@@ -46,22 +48,22 @@ sumfun <- function(df, mmnames, fcnames){
   return(accumdf)
 }
 
-##hhhead_religion hhhead_education hhhead_sex urban_rural year
+
 hhdf <- sumfun(hh, c("hhs", "spi24", "asset_index", "pop", "market", 
-                   "hh_size", "female_5de", "forestsavanna", 
+                   "hh_size",
                    "hhhead_age", "hhhead_literate", 
-                   "dependants", "workers", "irrigation"),
-             c("hhhead_religion", "hhhead_education", "hhhead_sex", "urban_rural", "year"))
+                   "dependents", "irrigation"),
+             c("hhhead_religion", "hhhead_education", "hhhead_sex", "year"))
 
 
 write.csv(hhdf, 'AllHHsummary.csv')
 
 
 chdf <- sumfun(ch, c("haz", "spi24", "asset_index", "pop", "market", 
-                     "hh_size", "female_5de", "forestsavanna", 
-                     "hhhead_age", "hhhead_literate", "dependants", "workers", 
+                     "hh_size",
+                     "hhhead_age", "hhhead_literate", "dependants",
                      "age", "birth_order", "within24", "irrigation"),
-               c("hhhead_religion", "hhhead_education", "year", "urban_rural", "hhhead_sex", "gender"))
+               c("hhhead_religion", "hhhead_education", "year", "hhhead_sex", "gender"))
 
 
 write.csv(chdf, 'AllCHsummary.csv')

@@ -146,7 +146,8 @@ allhh <- Reduce(merge, list(hh, hhs, hhcluster, irrig, lc, spi)) %>%
          cluster, perc_irrig, pop, market, latitude, longitude, spei12, spei24, 
          spei36, spi12, spi24, spi36, precip_mean,  tmin_mean, tmax_mean, spei12gs, 
          spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
-  mutate(spi24sq=spi24^2) %>%
+  mutate(spi24sq=spi24^2,
+         precip_mean=(precip_mean*12)/1000) %>%
   na.omit
 
 allchild <- merge(child, allhh, all.x=T, all.y=F) %>%
