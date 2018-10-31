@@ -108,10 +108,11 @@ allc2 <- bind_rows(allc, data.frame(CountryYear=sample(unique(allc$CountryYear),
                                     haz=rnorm(100000, mean=0, sd = 1), 
                                     Population='Reference Population'))
 
-ggplot(allc2, aes(haz, color=Population)) + 
+ggplot(allc2, aes(haz, color=Population, linetype=Population)) + 
   geom_density()+
   xlab('Child\'s Height-for-Age Z-score') + 
   ylab('Density') + theme_bw() + 
+  scale_color_manual(values=c(`Observed Children`='#FF6969', `Reference Population`="Black")) + 
   facet_wrap(~CountryYear, nrow=1) + 
   theme(legend.title = element_blank())
 ggsave('Child\'s Height-for-Age Z-score.png', width = 7, height=2.25, units = 'in')

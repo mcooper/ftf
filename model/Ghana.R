@@ -35,7 +35,7 @@ wlistchild <- allchild %>%
 
 #Significant autocorrelation, use spatial error model
 mod_child_gha <- errorsarlm(haz ~ asset_index + hh_size + spi24 + 
-                          hhhead_religion + precip_mean +
+                          hhhead_religion + precip_mean + 
                           hhhead_age + hhhead_literate + hhhead_sex + dependents + gender + age + pop + 
                           birth_order + within24,  
                         data=allchild, wlistchild)
@@ -45,10 +45,11 @@ summary(mod_child_gha)
 
 #Significant autocorrelation, use spatial error model
 mod_hh_gha <- errorsarlm(hhs~asset_index + hh_size + spi24 + 
-                     precip_mean +  hhhead_religion + market + 
+                     precip_mean +  hhhead_religion + 
                      hhhead_age + hhhead_literate + pop + 
                      hhhead_sex + dependents, 
                    data=allhh, wlisthh)
 summary(mod_hh_gha)
+
 
 save(list=c('mod_child_gha', 'mod_hh_gha'), file='GHA_mods.Rdata')

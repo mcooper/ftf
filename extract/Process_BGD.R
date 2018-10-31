@@ -23,12 +23,17 @@ hh <- read.dta13('Bangladesh/4. BIHS_household_2011_15.dta') %>%
          hhhead_literate,
          hhhead_sex=hhhead_gender,
          hhhead_religion,
+         hhhead_age,
          hh_size=memb_total,
          year,
          hh_refno,
          irrigation,
          dependents,
-         workers) %>%
+         workers,
+         dist_market_km,
+         dist_publictranspo_km,
+         dist_hospital_km,
+         bio_c_20000) %>%
   mutate(hhhead_education=as.factor(hhhead_education),
          hhhead_literate=hhhead_literate!='cannot read and write',
          hhhead_religion=factor(hhhead_religion, labels=c("Muslim", "Hindu", "Christian")),
@@ -140,8 +145,8 @@ sperr <- c(489, 905, 908, 955, 961, 1021, 1048, 1119, 1241, 1242, 1243, 1244, 12
 sperr <- paste0('BGD-', sperr)
 
 allhh <- Reduce(merge, list(hh, hhs, hhcluster, irrig, lc, spi)) %>%
-  filter(!hh_refno %in% sperr & market >= 8) %>%
-  select(hhs, year, hh_refno, hhhead_education, hhhead_literate, hhhead_sex, 
+  filter(!hh_refno %in% sperr & bio_c_20000 >= 30) %>%
+  select(hhs, year, hh_refno, hhhead_education, hhhead_literate, hhhead_sex, hhhead_age,
          hhhead_religion, hh_size, irrigation, dependents, workers, asset_index, 
          cluster, perc_irrig, pop, market, latitude, longitude, spei12, spei24, 
          spei36, spi12, spi24, spi36, precip_mean,  tmin_mean, tmax_mean, spei12gs, 

@@ -82,8 +82,8 @@ hunger <- read.csv('GHA-PBS-12/Ghana FTF datasets/MODULE 3A - HOUSEHOLD HUNGER S
 relmap <- data.frame(hhhead_religion=c("Ahmadi", "Catholic", "Islam", "No Religion", "Other", "Other Christian", 
                                        "Pentecostal/Charismatic", "Protestant (Anglican, Lutheran, Presbyterian, Methodist, etc)", 
                                        "Traditionalist"),
-                     new_rel=c('Islam', 'Christianity', 'Islam', 'None', 'Traditional', 'Christianity',
-                               'Christianity', 'Christianity', 'Traditional'))
+                     new_rel=c('Muslim', 'Christian', 'Muslim', 'None', 'Traditional', 'Christian',
+                               'Christian', 'Christian', 'Traditional'))
 
 hhdem <- read.csv('GHA-PBS-12/Ghana FTF datasets/MODULE 1 - HOUSEHOLD IDENTIFICATION.csv') %>%
   mutate(hh_size = as.integer(hhsize),
@@ -93,6 +93,8 @@ hhdem <- read.csv('GHA-PBS-12/Ghana FTF datasets/MODULE 1 - HOUSEHOLD IDENTIFICA
   mutate(hhhead_religion=as.factor(new_rel),
          new_rel=NULL,
          hhhead_sex=factor(hhhead_sex, levels=c('Male', 'Female')))
+
+levels(hhdem$hhhead_sex) <- c('male', 'female')
 
 depend_ratio <- read.csv('GHA-PBS-12/Ghana FTF datasets/MODULE 2 - HOUSEHOLD DEMOGRAPHY.csv') %>%
   mutate(dependent = ageyrs < 12 | ageyrs > 60,
@@ -137,7 +139,7 @@ allhh <- Reduce(merge, list(hhdem, hunger, assets, depend_ratio, hhchar, spi, lc
   mutate(dependents=dependents/hh_size,
          workers=workers/hh_size) %>%
   select(hhs, asset_index, pop, market, hh_size, latitude, longitude, hh_refno=hhserial, cluster,
-         hhhead_religion, hhhead_age, hhhead_education, hhhead_literate, hhhead_sex, 
+         hhhead_religion, hhhead_age, hhhead_literate, hhhead_sex, 
          dependents, workers, spei12, spei24, spei36, spi12, spi24, spi36, precip_mean, 
          tmin_mean, tmax_mean, spei12gs, spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
   mutate(spi24sq=spi24^2,

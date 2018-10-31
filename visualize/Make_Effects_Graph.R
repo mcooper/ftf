@@ -56,8 +56,8 @@ graph$Label <- factor(graph$Label, levels = rev(c("24-Month SPI",
 ggplot(graph %>% filter(Country=='Ghana')) + 
   geom_pointrange(aes(x=Label, y=Estimate, ymin=min, ymax=max, color=`Significance at p<0.1`), size=1) + 
   coord_flip() + 
-  geom_hline(yintercept=0, color='red', linetype=2) + 
-  scale_color_manual(values=c("Not Significant"="Black", "Significant"="firebrick4")) + 
+  geom_hline(yintercept=0, color='grey10', linetype=2) + 
+  scale_color_manual(values=c("Not Significant"="Black", "Significant"="#FF6969")) + 
   ylab("Coefficient Estimates") + 
   xlab("") + 
   theme_bw() +
@@ -69,8 +69,8 @@ ggsave("Coefs - Ghana.png", width=8, height=2.5, units = 'in')
 ggplot(graph %>% filter(Country=='Bangladesh')) + 
   geom_pointrange(aes(x=Label, y=Estimate, ymin=min, ymax=max, color=`Significance at p<0.1`), size=1) + 
   coord_flip() + 
-  geom_hline(yintercept=0, color='red', linetype=2) + 
-  scale_color_manual(values=c("Not Significant"="Black", "Significant"="firebrick4")) + 
+  geom_hline(yintercept=0, color='#ef8a62', linetype=2) + 
+  scale_color_manual(values=c("Not Significant"="Black", "Significant"="#FF6969")) + 
   scale_size_manual(values=c(a=1.1, b=0.4)) + 
   ylab("Coefficient Estimates for Bangladesh") + 
   xlab("") + 

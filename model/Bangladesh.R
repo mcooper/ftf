@@ -33,12 +33,6 @@ wlistchild <- allchild %>%
 #######################################
 library(strucchange)
 
-allchild <- allchild %>% arrange(year)
-
-sctest(haz ~ asset_index + hh_size + spi24 + hhhead_religion + precip_mean + 
-         hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age, type='Chow', 
-       data=allchild, point=table(allchild$year)[1])
-
 allhh <- allhh %>% arrange(year)
 
 sctest(hhs~hhhead_education + hhhead_literate + hhhead_religion + hh_size + hhhead_sex +
@@ -50,32 +44,36 @@ sctest(hhs~hhhead_education + hhhead_literate + hhhead_religion + hh_size + hhhe
 #######################
 ############Child Nutrition############################
 
-mod_child_bgd <- errorsarlm(haz ~ asset_index + hh_size + spi24 + 
+allchild$year <- as.factor(allchild$year)
+
+mod_child_bgd <- errorsarlm(haz ~ asset_index + hh_size + spi24 + hhhead_age + 
                           hhhead_religion + precip_mean + year + 
-                          hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age + pop,  
+                          hhhead_literate + hhhead_education + hhhead_sex + 
+                            dependents + gender + age + pop,  
                         data=allchild, wlistchild)
 summary(mod_child_bgd)
 
-mod_child_irrig_bgd <- errorsarlm(haz ~ asset_index + hh_size + irrigation*spi24 + 
+mod_child_irrig_bgd <- errorsarlm(haz ~ asset_index + hh_size + irrigation*spi24 + hhhead_age +  
                                 hhhead_religion + irrigation*precip_mean + year + 
                                 hhhead_literate + hhhead_education + hhhead_sex + dependents + gender + age + pop,  
                               data=allchild, wlistchild)
 summary(mod_child_irrig_bgd)
 
-
 #############Household Hunger###############################
 
-mod_hh_bgd <- errorsarlm(hhs ~ asset_index + hh_size + spi24 + 
+mod_hh_bgd <- sacsarlm(hhs ~ asset_index + hh_size + spi24 + hhhead_age + 
                        hhhead_religion + precip_mean + year + 
                        hhhead_literate + hhhead_education + 
                        hhhead_sex + dependents + pop,  
                      data=allhh, wlisthh, tol.solve=10e-20)
 summary(mod_hh_bgd)
 
-mod_hh_irrig_bgd <- errorsarlm(hhs ~ asset_index + hh_size + irrigation*spi24 + 
+mod_hh_irrig_bgd <- sacsarlm(hhs ~ asset_index + hh_size + irrigation*spi24 + hhhead_age + 
                              hhhead_religion + irrigation*precip_mean + year + 
                              hhhead_literate + hhhead_education + hhhead_sex + dependents + pop,  
                            data=allhh, wlisthh, tol.solve=10e-20)
 summary(mod_hh_irrig_bgd)
 
+
+save(list=c('mod_child_bgd', 'mod_hh_bgd', 'mod_child_irrig_bgd', 'mod_hh_irrig_bgd'), file='BGD_mods.Rdata')
 
