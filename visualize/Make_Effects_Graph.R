@@ -63,7 +63,7 @@ ggplot(graph %>% filter(Country=='Ghana')) +
   theme_bw() +
   facet_grid(. ~ Level, scales='free')
   
-ggsave("Coefs - Ghana.png", width=8, height=2.5, units = 'in')
+ggsave("Fig7.eps", width=8, height=2.5, units = 'in')
 
 
 ggplot(graph %>% filter(Country=='Bangladesh')) + 
@@ -77,4 +77,4 @@ ggplot(graph %>% filter(Country=='Bangladesh')) +
   theme_bw() + 
   facet_grid(. ~ Level, scales='free')
 
-ggsave("Coefs - Bangladesh.png", width=8, height=3.5, units = 'in')
+ggsave("Fig8.eps", width=8, height=3.5, units = 'in')

@@ -17,6 +17,8 @@ wlisthh <- allhh %>%
   SpatialPoints(proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
   spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125')) %>%
   coordinates %>%
+  dist
+  
   dnearneigh(0, buffer, longlat=F) %>%
   nb2listw(style="W")
 
@@ -61,14 +63,14 @@ summary(mod_child_irrig_bgd)
 
 #############Household Hunger###############################
 
-mod_hh_bgd <- sacsarlm(hhs ~ asset_index + hh_size + spi24 + hhhead_age + 
+mod_hh_bgd <- errorsarlm(hhs ~ asset_index + hh_size + spi24 + hhhead_age + 
                        hhhead_religion + precip_mean + year + 
                        hhhead_literate + hhhead_education + 
                        hhhead_sex + dependents + pop,  
                      data=allhh, wlisthh, tol.solve=10e-20)
 summary(mod_hh_bgd)
 
-mod_hh_irrig_bgd <- sacsarlm(hhs ~ asset_index + hh_size + irrigation*spi24 + hhhead_age + 
+mod_hh_irrig_bgd <- errorsarlm(hhs ~ asset_index + hh_size + irrigation*spi24 + hhhead_age + 
                              hhhead_religion + irrigation*precip_mean + year + 
                              hhhead_literate + hhhead_education + hhhead_sex + dependents + pop,  
                            data=allhh, wlisthh, tol.solve=10e-20)

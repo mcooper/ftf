@@ -54,10 +54,10 @@ ggplot(all, aes(spi24)) +
   ylab('Density') + theme_bw() + 
   facet_wrap(~CountryYear, nrow=1)
 
-ggsave('24-Month Standardized Precipitation Index PDF.png', width = 6, height=2.25, units = 'in')
+ggsave('Fig2.eps', width = 6, height=2.25, units = 'in')
 
 #Long-term precipitation Norms
-all$precip_mean <- all$precip_mean*12
+all$precip_mean <- all$precip_mean*1000
 
 makelabels <- function(x){
   round(exp(x), -2)
@@ -70,7 +70,7 @@ ggplot(all, aes(log(precip_mean))) +
   ylab('Density') + theme_bw() + 
   facet_wrap(~country, nrow=1)
 
-ggsave('Mean annual Precip PDF.png', width = 4, height=2.25, units = 'in')
+ggsave('Fig3.eps', width = 4, height=2.25, units = 'in')
 
 #hhs
 allsum <- all %>%
@@ -86,7 +86,7 @@ ggplot(allsum, aes(x=hhs, y=y)) +
   xlab('Household Hunger Scale') +
   ylab('Probability') + theme_bw() +
   facet_wrap(~CountryYear, nrow=1)
-ggsave('Household Hunger Scale.png', width = 6, height=2.25, units = 'in')
+ggsave('Fig4.eps', width = 6, height=2.25, units = 'in')
 
 
 ##HHS PDF
@@ -115,7 +115,7 @@ ggplot(allc2, aes(haz, color=Population, linetype=Population)) +
   scale_color_manual(values=c(`Observed Children`='#FF6969', `Reference Population`="Black")) + 
   facet_wrap(~CountryYear, nrow=1) + 
   theme(legend.title = element_blank())
-ggsave('Child\'s Height-for-Age Z-score.png', width = 7, height=2.25, units = 'in')
+ggsave('Fig5.eps', width = 7, height=2.25, units = 'in')
 
 #Irrigation
 ggplot(allhh, aes(irrigation)) + 
@@ -123,7 +123,7 @@ ggplot(allhh, aes(irrigation)) +
   xlab('Irrigation Rate') + 
   ylab('Density') + theme_bw() + 
   theme(legend.title = element_blank())
-ggsave('Irrigation.png', width = 2.5, height=2.25, units = 'in')
+ggsave('Fig6.eps', width = 2.5, height=2.25, units = 'in')
 
 
 ##Bivariate plots

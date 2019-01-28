@@ -58,7 +58,7 @@ nutritionPrep <- function(){
   bmianthro <<- read.table("WHO Anthro reference tables/bmianthro.txt", header=T)
   ssanthro <<- read.table("WHO Anthro reference tables/ssanthro.txt", header=T)
   tsanthro <<- read.table("WHO Anthro reference tables/tsanthro.txt", header=T)
-  source('igrowup_standard.r')
+  source('C://Git/ftf/utils/igrowup_standard.r')
   
 }
 

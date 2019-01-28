@@ -33,7 +33,9 @@ hh <- read.dta13('Bangladesh/4. BIHS_household_2011_15.dta') %>%
          dist_market_km,
          dist_publictranspo_km,
          dist_hospital_km,
-         bio_c_20000) %>%
+         bio_c_20000,
+         admin1=NAME_1,
+         admin2=NAME_2) %>%
   mutate(hhhead_education=as.factor(hhhead_education),
          hhhead_literate=hhhead_literate!='cannot read and write',
          hhhead_religion=factor(hhhead_religion, labels=c("Muslim", "Hindu", "Christian")),
@@ -102,7 +104,19 @@ hhs15 <- read.dta13('Bangladesh/BIHS Raw Data (2015)/068_r2_mod_x3_female.dta') 
          year=2015) %>%
   select(hh_refno, hhs, year)
 
-hhs <- bind_rows(hhs11, hhs15)     
+hhs <- bind_rows(hhs11, hhs15)
+
+weight11 <- read.dta13("Bangladesh/BIHS Raw Data (2011)/IFPRI_BIHS_R1_NR_expenditure.dta") %>%
+  mutate(hh_refno=paste0('BGD-', a01),
+         year=2011) %>%
+  select(hh_refno, year, hhweight=hhweightR1, popweight=popweightR1)
+
+weight15 <- read.dta13("Bangladesh/BIHS Raw Data (2015)/IFPRI_BIHS_R2_NR_expenditure.dta") %>%
+  mutate(hh_refno=paste0('BGD-', a01),
+         year=2015) %>%
+  select(hh_refno, year, hhweight=hhweightR2, popweight=popweightR2)
+
+weight <- bind_rows(weight11, weight15)
 
 hhcluster <- read.dta("Bangladesh/BIHS Raw Data (2011)/001_mod_a_male.dta") %>%
   mutate(hh_refno=paste0('BGD-', a01),
@@ -120,22 +134,27 @@ child <- read.dta13('Bangladesh/5. BIHS_child_2011_15.dta') %>%
          year,
          hh_refno,
          age,
-         gender)
+         gender,
+         ind_refno=mid)
 
 ###################
 #read in Geo Vars
 ###############
-irrig <- read.csv('BGD_perc_irrig.csv') %>%
-  select(hh_refno, perc_irrig) %>%
-  unique
+spi_child <- read.csv('PrecipIndices_Child.csv') %>%
+  mutate(interview_year=year,
+          year=survey_year) %>%
+  select(hh_refno, ind_refno, age, latitude, longitude, year,
+         month, survey_date, spi_age, spi_ageutero, interview_year)
+
+spi_hh <- read.csv('PrecipIndices_HH.csv') %>%
+  mutate(interview_year=year,
+         year=survey_year)
 
 lc <- read.csv('Landcover.csv') %>%
-  select(hh_refno, year, pop, market) %>%
+  filter(grepl('BGD', hh_refno)) %>%
+  select(hh_refno, year, pop) %>%
   unique
-lc$year[lc$year==2012 & grepl('BGD', lc$hh_refno)] <- 2011
-
-spi <- read.csv('AllFtfPrecipIndices.csv')
-spi$year[spi$year==2012 & grepl('BGD', spi$hh_refno)] <- 2011
+lc$year[lc$year==2012] <- 2011
 
 ######################################
 #Combine
@@ -144,18 +163,37 @@ spi$year[spi$year==2012 & grepl('BGD', spi$hh_refno)] <- 2011
 sperr <- c(489, 905, 908, 955, 961, 1021, 1048, 1119, 1241, 1242, 1243, 1244, 1245, 1247, 1248, 1249, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258, 1259, 1260, 1560, 2160, 2201, 2346, 2360, 2364, 2478, 2524, 2644, 2719, 2901, 2922, 3042, 3301, 3307, 3735, 3913, 3943, 4195, 4243, 4309, 4354, 4620, 4876, 4915, 4919, 5015, 5026, 5102, 5103, 5183, 5621, 5703, 5779, 5785, 5813, 5817, 5858, 5884, 5921, 5966, 5993, 6103, 6183, 6218, 6354, 6356, 6378, 6460)
 sperr <- paste0('BGD-', sperr)
 
-allhh <- Reduce(merge, list(hh, hhs, hhcluster, irrig, lc, spi)) %>%
+#Not including weights for now, because somehow, they aren't available for every household?
+allhh <- Reduce(merge, list(hh, hhs, hhcluster, spi_hh, lc)) %>%
   filter(!hh_refno %in% sperr & bio_c_20000 >= 30) %>%
-  select(hhs, year, hh_refno, hhhead_education, hhhead_literate, hhhead_sex, hhhead_age,
-         hhhead_religion, hh_size, irrigation, dependents, workers, asset_index, 
-         cluster, perc_irrig, pop, market, latitude, longitude, spei12, spei24, 
-         spei36, spi12, spi24, spi36, precip_mean,  tmin_mean, tmax_mean, spei12gs, 
-         spei24gs, spei36gs, spi12gs, spi24gs, spi36gs) %>%
-  mutate(spi24sq=spi24^2,
-         precip_mean=(precip_mean*12)/1000) %>%
+  select(hhs, survey_year=year, hh_refno, hhhead_education, hhhead_literate, hhhead_sex, hhhead_age,
+         hhhead_religion, hh_size, irrigation, dependents, workers, asset_index, pop,
+         cluster, admin1, admin2, latitude, interview_year, interview_month=month,
+         longitude, spi12, spi24, spi36, spi48, spi60, spi12_lag, 
+         spi24_lag, spi36_lag, spi48_lag, spi60_lag, mean_annual_precip) %>%
   na.omit
 
-allchild <- merge(child, allhh, all.x=T, all.y=F) %>%
+allchild <- Reduce(function(x, y){merge(x, y, all.x=T, all.y=F)}, list(child, allhh, spi_child)) %>%
   na.omit
+
+#Get coords in meters
+library(sp)
+
+allhh_sp <- SpatialPointsDataFrame(allhh[ , c('longitude', 'latitude')], data=allhh, proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
+  spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125'))
+  
+allhh_sp@data[ , c('longitude_meters', 'latitude_meters')] <- allhh_sp@coords
+
+
+allchild_sp <- SpatialPointsDataFrame(allchild[ , c('longitude', 'latitude')], data=allchild, proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
+  spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125'))
+
+allchild_sp@data[ , c('longitude_meters', 'latitude_meters')] <- allchild_sp@coords
+
+allhh <- allhh_sp@data
+allchild <- allchild_sp@data
 
 save(file="BGD_data.Rdata", list=c("allhh", "allchild"))
+
+write.csv(allhh, "BGD_hh.csv", row.names=F)
+write.csv(allchild, "BGD_child.csv", row.names=F)
