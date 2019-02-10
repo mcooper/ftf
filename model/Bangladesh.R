@@ -17,8 +17,6 @@ wlisthh <- allhh %>%
   SpatialPoints(proj4string = CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')) %>%
   spTransform(CRS('+proj=eqdc +lat_1=22.191291158578405 +lat_2=25.41960806605085 +lon_0=90.703125')) %>%
   coordinates %>%
-  dist
-  
   dnearneigh(0, buffer, longlat=F) %>%
   nb2listw(style="W")
 

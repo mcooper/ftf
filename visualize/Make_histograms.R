@@ -9,7 +9,7 @@ load('GHA_data.Rdata')
 
 allhh <- allhh %>%
   mutate(country='Ghana',
-         year=2012,
+         survey_year="2012",
          hhhead_education=NULL)
 
 all <- bind_rows(all, allhh)
@@ -17,11 +17,12 @@ all <- bind_rows(all, allhh)
 load('BGD_data.Rdata')
 
 allhh <- allhh %>%
-  mutate(country='Bangladesh')
+  mutate(country='Bangladesh',
+         survey_year = as.character(survey_year))
 
 all <- bind_rows(all, allhh)
 
-all$CountryYear <- paste(all$country, all$year)
+all$CountryYear <- paste(all$country, all$survey_year)
 
 allc <- data.frame()
 
@@ -29,7 +30,7 @@ load('GHA_data.Rdata')
 
 allchild <- allchild %>%
   mutate(country='Ghana',
-         year=2012,
+         survey_year=2012,
          hhhead_education=NULL)
 
 allc <- bind_rows(allc, allchild)
@@ -39,31 +40,29 @@ load('BGD_data.Rdata')
 allchild <- allchild %>%
   mutate(country='Bangladesh',
          hh_refno=NULL,
-         year=as.numeric(as.character(year)))
+         survey_year=as.numeric(as.character(survey_year)))
 
 allc <- bind_rows(allc, allchild)
 
-allc$CountryYear <- paste(allc$country, allc$year)
+allc$CountryYear <- paste(allc$country, allc$survey_year)
 
 all$CountryYear <- relevel(as.factor(all$CountryYear), ref="Ghana 2012")
 
 ##SPI frequency plot
-ggplot(all, aes(spi24)) + 
-  geom_density() +
-  xlab('24-Month Standardized Precipitation Index') +
-  ylab('Density') + theme_bw() + 
-  facet_wrap(~CountryYear, nrow=1)
-
-ggsave('Fig2.eps', width = 6, height=2.25, units = 'in')
+# ggplot(all, aes(spi24)) + 
+#   geom_density() +
+#   xlab('24-Month Standardized Precipitation Index') +
+#   ylab('Density') + theme_bw() + 
+#   facet_wrap(~CountryYear, nrow=1)
+# 
+# ggsave('Fig2.eps', width = 6, height=2.25, units = 'in')
 
 #Long-term precipitation Norms
-all$precip_mean <- all$precip_mean*1000
-
 makelabels <- function(x){
   round(exp(x), -2)
 }
 
-ggplot(all, aes(log(precip_mean))) + 
+ggplot(all, aes(log(mean_annual_precip))) + 
   geom_density() +
   xlab('Average Annual Precipitation (mm)') +
   scale_x_continuous(limits=c(6.75, 8.6), breaks =c(7, 7.5, 8, 8.5), labels=makelabels) + 
