@@ -71,4 +71,12 @@ allhh$resid <- residuals(lm(hhs ~ asset_index + hh_size + hhhead_age + survey_ye
 res <- getMorans('longitude_meters', 'latitude_meters', 'resid', allhh)
 moran <- bind_rows(moran, data.frame(country='Bangladesh', variable='hhs_resid', res))
 
+options(scipen=100)
 
+for (n in names(moran)){
+  if (is.numeric(moran[ , n])){
+    moran[ , n] <- signif(moran[ , n], 3)
+  }
+}
+
+write.csv(moran, 'ESDA.csv', row.names=F)
