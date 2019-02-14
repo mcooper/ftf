@@ -10,17 +10,23 @@ df <- data.frame()
 df <- bind_rows(df, data.frame(Distance=bgd_haz_fit$mean.of.class,
                                Correlation=bgd_haz_fit$correlation,
                                PValue=bgd_haz_fit$p,
-                               Regression="HAZ - Bangladesh"))
+                               Regression="Bangladesh - HAZ"))
+
+df <- bind_rows(df, data.frame(Distance=bgd_whz_fit$mean.of.class,
+                               Correlation=bgd_whz_fit$correlation,
+                               PValue=bgd_whz_fit$p,
+                               Regression="Bangladesh - WHZ"))
 
 df <- bind_rows(df, data.frame(Distance=bgd_hhs_fit$mean.of.class,
                                Correlation=bgd_hhs_fit$correlation,
                                PValue=bgd_hhs_fit$p,
-                               Regression="HHS - Bangladesh"))
+                               Regression="Bangladesh - HHS"))
 
 df <- bind_rows(df, data.frame(Distance=gha_hhs_fit$mean.of.class,
                                Correlation=gha_hhs_fit$correlation,
                                PValue=gha_hhs_fit$p,
-                               Regression="HHS - Ghana"))
+                               Regression="Ghana - HHS"))
+
 
 confInt <- function(p, est, side=c('high', 'low')){
   z = -0.862 + sqrt(0.743 - 2.404*log(p))
@@ -46,6 +52,8 @@ ggplot(df) + geom_hline(aes(yintercept=0), color='red', linetype=2) +
   geom_ribbon(aes(ymin=min, ymax=max, x=Distance), fill='grey90') +  
   geom_line(aes(x=Distance, y=Correlation)) + 
   facet_grid( ~ Regression) + 
+  ylab('Moran\'s I') + 
+  xlab('Distance (km)') +
   theme_bw() + 
   coord_cartesian(ylim=c(-0.05, 0.25), xlim=c(0, 150))
 

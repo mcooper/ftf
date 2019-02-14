@@ -103,18 +103,23 @@ allc$Population <- 'Observed Children'
 allc$CountryYear <- relevel(as.factor(allc$CountryYear), ref="Ghana 2012")
 
 
-allc2 <- bind_rows(allc, data.frame(CountryYear=sample(unique(allc$CountryYear), size = 100000, replace = TRUE),
-                                    haz=rnorm(100000, mean=0, sd = 1), 
-                                    Population='Reference Population'))
+allc2 <- bind_rows(allc %>% rename(Value=haz) %>%
+                     mutate(Metric="HAZ"), 
+                   allc %>% rename(Value=whz) %>%
+                     mutate(Metric="WHZ"),
+                   data.frame(CountryYear=sample(unique(allc$CountryYear), size = 500000, replace = TRUE),
+                              Metric=c("HAZ", "WHZ"),
+                              Value=rnorm(500000, mean=0, sd = 1), 
+                              Population='Reference Population'))
 
-ggplot(allc2, aes(haz, color=Population, linetype=Population)) + 
+ggplot(allc2, aes(Value, color=Population, linetype=Population)) + 
   geom_density()+
   xlab('Child\'s Height-for-Age Z-score') + 
   ylab('Density') + theme_bw() + 
   scale_color_manual(values=c(`Observed Children`='#FF6969', `Reference Population`="Black")) + 
-  facet_wrap(~CountryYear, nrow=1) + 
-  theme(legend.title = element_blank())
-ggsave('Fig5.eps', width = 7, height=2.25, units = 'in')
+  facet_wrap(Metric~CountryYear) + 
+  theme(legend.title = element_blank(), legend.position = "bottom")
+ggsave('Fig5.eps', width = 8, height=5.0, units = 'in')
 
 #Irrigation
 ggplot(allhh, aes(irrigation)) + 
