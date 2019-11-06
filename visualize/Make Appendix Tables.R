@@ -3,6 +3,8 @@ setwd('G://My Drive/Feed the Future/Cloud Model Results')
 library(spdep)
 library(dplyr)
 library(ggplot2)
+library(lmtest)
+library(texreg)
 
 options(scipen=1000)
 
@@ -37,7 +39,7 @@ parse_model <- function(mod, cty){
     lambdap <- pnorm(0, abs(lambda), lambdase)
     lambdastars <- ifelse(lambdap > 0.1, "", 
                          ifelse(lambdap > 0.05, ".", 
-                                ifelse(lambdap > 0.01, "*", "***")))
+                                ifelse(lambdap > 0.01, "*", "**")))
     Lambda <- data.frame(Parameter="Lambda", stars=lambdastars, Estimate=mod$lambda, "StdError"=lambdase)
     
     coefs <- bind_rows(coefs, Lambda)
@@ -60,6 +62,18 @@ parse_model <- function(mod, cty){
     Wald <- data.frame(Parameter="Wald", Estimate=summary(mod)$Wald1$statistic, stars=waldstars)
     
     coefs <- bind_rows(coefs, Wald)
+  } else{
+    
+    w <- waldtest(mod)
+    
+    waldp <- w$`Pr(>F)`[2]
+    
+    waldstars <- ifelse(waldp > 0.1, "", 
+                        ifelse(waldp > 0.05, ".", 
+                               ifelse(waldp > 0.01, "*", "**")))
+    
+    Wald <- data.frame(Parameter="Wald", Estimate=w$F[2], stars=waldstars)
+    
   }
   
   #n
@@ -81,44 +95,16 @@ for (spi in c('spi12', 'spi24', 'spi36', 'spi48', 'spi60')){
     load(f)
   }
   
-  #HAZ
-  haz_gha <- parse_model(haz_gha, "HAZ")
-  
-  #WHZ
-  whz_gha <- parse_model(whz_gha, "WHZ")
-
-  #HHS
-  hhs_gha <- parse_model(hhs_gha, "HHS")
-
-  regression_res <- Reduce(function(x, y){merge(x, y, all.x=T, all.y=T)}, 
-                           list(haz_gha, whz_gha, hhs_gha)) %>%
-    merge(labels, all.x=T, all.y=F) %>%
-    arrange(rank) %>%
-    select(-rank, -Parameter)
-  
-  write.csv(regression_res[ , c(10, seq(1, 9))], paste0('../results-GHA-', spi, '.csv'), row.names=F, na = "")
-  
+  texreg(l=list(haz_gha, whz_gha, hhs_gha), file=paste0('C://Users/matt/Desktop/GHA', spi),
+         custom.model.names=c("HAZ", "WHZ", 'HHS'), 
+         caption=paste0(spi, ' in Ghana'))
   
   #Bangladesh
   for (f in list.files(pattern=paste0('bgd_.*_admin1_factor.*', spi))){
     load(f)
   }
-  
-  #HAZ
-  haz_bgd <- parse_model(haz_bgd_irrig, "HAZ")
-  
-  #WHZ
-  whz_bgd <- parse_model(whz_bgd_irrig, "WHZ")
-  
-  #HHS
-  hhs_bgd <- parse_model(hhs_bgd_irrig, "HHS")
-  
-  regression_res <- Reduce(function(x, y){merge(x, y, all.x=T, all.y=T)}, 
-                           list(haz_bgd, whz_bgd, hhs_bgd)) %>%
-    merge(labels, all.x=T, all.y=F) %>%
-    arrange(rank) %>%
-    select(-rank, -Parameter)
-  
-  write.csv(regression_res[ , c(10, seq(1, 9))], paste0('../results-BGD-', spi, '.csv'), row.names=F, na = "")
-  
+
+  texreg(l=list(haz_bgd_irrig, whz_bgd_irrig, hhs_bgd_irrig), file=paste0('C://Users/matt/Desktop/BGD', spi),
+         custom.model.names=c("HAZ", "WHZ", 'HHS'), 
+         caption=paste0(spi, ' in Bangladesh'))
 }

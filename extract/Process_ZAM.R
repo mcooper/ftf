@@ -1,8 +1,7 @@
 setwd('G://My Drive/Feed the Future/')
 
-library(foreign)
+library(haven)
 library(dplyr)
-library(readstata13)
 library(tidyr)
 
 options(stringsAsFactors = F)
@@ -12,14 +11,7 @@ source('C://Git/ftf/utils/utils.R')
 ##################################
 #Extract hh vars
 ##################################
-children <- read.dta('ZMB-RALS-12/Zambia ftf/Zambia_children_file_PR.dta') %>%
-  select(haz,
-         age=i06,
-         gender=i03,
-         pbs_id) %>%
-  mutate(gender=factor(gender, levels=c(1, 2), labels=c('Male', 'Female')))
-
-household <- read.dta('ZMB-RALS-12/Zambia ftf/Zambia_household_PR.dta')
+household <- read_dta('ZMB-RALS-12/Zambia ftf/Zambia_household_PR.dta')
 
 household$asset_index <- PCA_assets(household[ , paste0('d0', seq(1, 8))], ntiles=5)
 household <- household %>%
